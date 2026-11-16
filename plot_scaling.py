@@ -75,6 +75,12 @@ def main():
     fig.suptitle(f"{label}\n{metadata['scenarios']:,} months · {metadata['settings']['assets']} stocks · {metadata['settings']['days']} days")
     note = (f"{metadata['repeats']} repeats; runtime bars show min–max. Pool startup and gathering included. "
             f"Node: {metadata['node']}; job: {metadata['slurm_job_id']}.")
+    if metadata.get("resume_attempts"):
+        jobs = list(dict.fromkeys([str(metadata['slurm_job_id'])] +
+                    [str(attempt['job_id']) for attempt in metadata['resume_attempts']]))
+        note = (f"{metadata['repeats']} repeats; runtime bars show min–max. Pool startup and gathering included. "
+                f"Node: {metadata['node']}; jobs: {', '.join(jobs)}."
+                "\nResumed after preemption; measurements span allocations.")
     if not metadata["sequential_median_at_least_10_minutes"]:
         note += "\nPreliminary size: the final 10-minute sequential-workload requirement is not met."
     fig.text(0.5, 0.015, note, ha="center", fontsize=8)
