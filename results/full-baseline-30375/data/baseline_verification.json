@@ -1,0 +1,20 @@
+{
+  "context": "single_cpu_cluster_batch",
+  "scenarios": 64000000,
+  "assets": 50,
+  "days": 20,
+  "batch_size": 4096,
+  "seed": 20261115,
+  "allowed_logical_cpus": [
+    65
+  ],
+  "array_bounds_and_shapes_passed": true,
+  "result_digest": "94a2c858b5df667aab580e85c656a80082fb084d8f8c0de443f4463aa22973b1",
+  "compute_seconds": 799.9350840947591,
+  "ten_minute_workload_verified": true,
+  "source_sha256": {
+    "simulate.py": "a3e60ca0a4c342526311578b0749aad72c7aae21907a49185b6c9f194b86ccec",
+    "full_baseline.py": "7fdc1291bd3329692626ac8585e5b575c0d6da2f3d7d4d2a9732e2a259bbf7a6"
+  },
+  "note": "One full-size qualification run, not five performance repetitions. Repeated full-size scaling is still required. This is not statistical uncertainty estimation or a complete independent model validation."
+}
