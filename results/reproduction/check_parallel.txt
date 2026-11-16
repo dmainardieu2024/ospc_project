@@ -1,0 +1,10 @@
+PASS: normal, threads, 1 workers; byte-identical=True
+PASS: normal, threads, 2 workers; byte-identical=True
+PASS: normal, processes, 1 workers; byte-identical=True
+PASS: normal, processes, 2 workers; byte-identical=True
+PASS: crisis, threads, 1 workers; byte-identical=True
+PASS: crisis, threads, 2 workers; byte-identical=True
+PASS: crisis, processes, 1 workers; byte-identical=True
+PASS: crisis, processes, 2 workers; byte-identical=True
+All tested parallel outputs match the sequential baseline.
+This checks correctness, not scaling performance.

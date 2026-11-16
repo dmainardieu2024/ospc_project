@@ -1,0 +1,4 @@
+PASS: hand-calculated drawdowns, flat market, disabled crises, repeatability,
+batch ordering, forced crises, positive values, drawdown bounds, binary outputs,
+tail summaries, output protection, and production-size selection.
+Still required: analytical normal-return benchmark and parallel equivalence tests.
