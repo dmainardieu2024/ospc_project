@@ -1,46 +1,132 @@
 # Independent normal reference validation
 
-Prepared for Leo Ayyashi Guillén, 16 November 2026. Status: university cluster validation completed successfully; team review and Git commit pending. The professor's original feedback was not supplied; this implementation follows Task C's specification. Repository snapshot: 2efa319a64b30d797c1ce7d0e8868e7d4206be9a. simulate.py is unchanged.
+Leo Ayyashi Guillén — 16 November 2026
+
+I ran the independent normal reference validation on the university cluster as job 30985. All three seeds passed the 1% relative-error tolerance for both VaR and ES. The scripts, report and cluster evidence have been committed to the repository.
+
+## Purpose
+
+I used a simple portfolio with a known analytical loss distribution to compare simulated results against mathematical answers.
+
+Agreement between sequential and parallel implementations checks consistency, but both implementations could share an error. This reference case provides a separate check against known financial quantities.
+
+I kept this validation separate from simulate.py and did not change the existing financial model.
 
 ## Model and analytical answer
 
-This separate ONE-DAY arithmetic-return model has portfolio value €100,000, five equal weights of 0.2, zero means, volatilities [0.010, 0.012, 0.015, 0.018, 0.020], and off-diagonal correlation 0.25 (diagonal 1).
+I used a one-day arithmetic-normal return model with:
 
-Let Σ = diag(vol) R diag(vol), and loss L = −100000 wᵀr. Then L is normal with mean zero and σ_L = 100000 sqrt(wᵀΣw).
+| Input | Value |
+|---|---|
+| Portfolio value | €100,000 |
+| Assets | 5 |
+| Weights | 0.2 per asset |
+| Mean returns | Zero |
+| Daily volatilities | 0.010, 0.012, 0.015, 0.018, 0.020 |
+| Correlation between different assets | 0.25 |
+| Confidence level | 99% |
 
-For z = Φ⁻¹(0.99), VaR99 = z σ_L and ES99 = σ_L φ(z)/0.01. Here φ(z) = exp(−z²/2)/sqrt(2π). These are positive upper-tail losses. Reference: https://www.mathworks.com/help/risk/estimate-expected-shortfall-with-the-expectedShortfall-function.html (normal VaR/ES formulas; adapted to the loss sign convention).
+I constructed the covariance matrix as:
 
-Calculated σ_L = €959.3747964; VaR99 = €2231.8395181; ES99 = €2556.9393501.
+Σ = diag(vol) R diag(vol)
 
-## Simulation and verified cluster results
+The correlation matrix R has ones on its diagonal and 0.25 elsewhere.
 
-Each seed generates 1,000,000 return vectors in batches of 4,096, including a partial final batch. SeedSequence.spawn assigns a child stream to each batch. With Σ = CCᵀ from Cholesky, standard-normal row vectors Z are transformed as ZCᵀ. Losses are assembled globally before calculating the linear-interpolated 99th percentile and the mean of the largest ceil(0.01N) losses. No batch-level quantiles are averaged. All losses take about 8 MB; return-vector memory is bounded by batch size.
+For return vector r and weight vector w, portfolio loss is:
 
-The script checks the Cholesky reconstruction and verifies portfolio variance independently using 0.75 Σ_i(w_i vol_i)² + 0.25(Σ_i w_i vol_i)².
+L = −100000 wᵀr
 
-| Seed | Estimated VaR (€) | VaR error | Estimated ES (€) | ES error |
+The loss distribution is normal, with mean zero and standard deviation:
+
+σ_L = 100000 √(wᵀΣw)
+
+Using z = Φ⁻¹(0.99), I calculated:
+
+VaR99 = z σ_L
+
+ES99 = σ_L φ(z) / 0.01
+
+Here, Φ is the standard normal cumulative distribution function and φ(z) = exp(−z²/2)/√(2π). Positive values represent losses.
+
+The analytical answers are:
+
+| Quantity | Analytical value |
+|---|---:|
+| Loss standard deviation | €959.3747964 |
+| VaR99 | €2,231.8395181 |
+| ES99 | €2,556.9393501 |
+
+Formula reference: [MathWorks — Estimate Expected Shortfall](https://www.mathworks.com/help/risk/estimate-expected-shortfall-with-the-expectedShortfall-function.html).
+
+## Simulation method
+
+For each seed, I simulated 1,000,000 correlated one-day return vectors in batches of 4,096, including a smaller final batch.
+
+The script uses SeedSequence.spawn to assign a separate child random stream to each batch. It calculates a Cholesky factor C such that Σ = CCᵀ, then transforms independent standard-normal row vectors Z into correlated returns using ZCᵀ.
+
+For each scenario, it calculates:
+
+Loss = −100000 × (return vector @ weights)
+
+The script collects all losses before estimating:
+
+- VaR99: the linearly interpolated 99th percentile.
+- ES99: the mean of the largest ceil(0.01N) losses.
+
+It does not average batch-level quantiles. For 1,000,000 scenarios, the ES estimate uses the largest 10,000 losses.
+
+The loss array occupies approximately 8 MB. Return-vector memory is bounded by the batch size.
+
+The script also checks that the Cholesky factor reconstructs the covariance matrix and verifies portfolio variance using the separate equicorrelation expression:
+
+wᵀΣw = 0.75 Σᵢ(wᵢ volᵢ)² + 0.25(Σᵢ wᵢ volᵢ)²
+
+## Cluster results
+
+I submitted normal_validation.slurm from my cluster account, pc17. Job 30985 completed on 16 November 2026 with State COMPLETED and ExitCode 0:0.
+
+| Seed | Estimated VaR (€) | VaR relative error | Estimated ES (€) | ES relative error |
 |---|---:|---:|---:|---:|
 | 11 | 2227.9499 | 0.174% | 2551.7356 | 0.204% |
 | 22 | 2229.1549 | 0.120% | 2557.0895 | 0.006% |
 | 33 | 2228.3845 | 0.155% | 2555.2615 | 0.066% |
 
-Cluster job **30985**, submitted from account pc17, completed on 16 November 2026 with State COMPLETED and ExitCode 0:0. Python 3.12.15; NumPy 2.5.4. All three seeds and both metrics passed the unchanged 1% tolerance. Library thread limits were fixed to 1 in the submitted script. The uploaded cluster script matches the locally tested script byte for byte.
+All six comparisons passed the 1% tolerance.
 
-Evidence: results/normal-validation-30985/validation.csv (full precision and versions), job_status.txt (Slurm completion), resources.txt (process resource usage), and normal-validation-30985.out (printed outcomes). The process took 0.57 seconds wall time and maximum resident memory was 58,088 KB; Slurm reported an elapsed time of one second. This small diagnostic run is not the project's full-size performance baseline.
+The cluster environment used Python 3.12.15 and NumPy 2.5.4. OMP_NUM_THREADS, OPENBLAS_NUM_THREADS and MKL_NUM_THREADS were fixed to 1.
 
-The table above is verified against the cluster CSV; the local test produced the same estimates. Raw cluster evidence is preserved unchanged.
+The process resource report recorded 0.57 seconds of wall time and maximum resident memory of 58,088 KB. Slurm reported an elapsed time of one second. This small validation run is separate from the project's full-size performance baseline.
+
+I saved the evidence in:
+
+- results/normal-validation-30985/validation.csv
+- results/normal-validation-30985/job_status.txt
+- results/normal-validation-30985/resources.txt
+- normal-validation-30985.out
+
+The CSV contains full-precision estimates, analytical answers, absolute and relative errors, pass flags and execution metadata.
 
 ## Tolerance and interpretation
 
-A 1% relative-error threshold is fixed for each metric for every seed. It is a practical regression threshold for this million-scenario example, not a derived confidence interval. Both metrics pass for all three seeds; the tolerance was not adjusted after testing. A future failure should be investigated and reported rather than silently changing tolerance. Three successful seeds do not establish a failure probability for all possible seeds.
+I used a provisional 1% relative-error tolerance for each metric and each seed. This is a practical acceptance threshold for the million-scenario reference case, not a derived confidence interval.
 
-Sampling error means finite simulated samples differ from population answers; it changes with the seed. Arithmetic roundoff comes from finite floating-point precision and is distinct from this Monte Carlo variation. Model uncertainty concerns whether Gaussian one-day returns describe actual markets; agreement with the analytic answer does not establish that assumption.
+The tolerance remained unchanged after testing. All three seeds passed, but three successful seeds do not establish the probability of passing for every possible seed.
 
-Agreement between parallel implementations checks consistency, but both may share the same mistake. Comparison against a separately derived financial answer tests something different. Existing check.py includes hand-path drawdown checks and controlled-model cases; check_parallel.py addresses execution equivalence. Neither substitutes for this normal reference case.
+The differences between simulated estimates and analytical answers require three distinctions:
 
-This validation does not prove that the crisis model is realistic and does not analytically validate monthly compounded maximum drawdown. The normal reference models one-day terminal arithmetic loss; the main simulation models a different quantity over multiple days.
+- Sampling error arises because a finite random sample differs from the full theoretical distribution. It changes with the seed.
+- Arithmetic roundoff arises from finite floating-point precision. It is separate from Monte Carlo sampling variation.
+- Model uncertainty concerns whether the assumed return distribution describes actual markets. Agreement with an analytical answer does not establish that the assumptions are realistic.
 
-## Reproduce locally
+## What this validates
+
+These results show that the simulated VaR and ES estimates are close to the analytical answers for the specified one-day arithmetic-normal portfolio.
+
+This does not prove that the crisis model is realistic or analytically validate monthly compounded maximum drawdown. The reference case measures one-day terminal loss, while the main simulation measures drawdown over multiple days.
+
+The existing check.py hand-path and controlled-model checks address other aspects of the calculation. check_parallel.py checks agreement between execution methods. These checks complement the independent normal reference case.
+
+## Reproduction
 
 From the repository root, with NumPy installed:
 
@@ -48,21 +134,26 @@ From the repository root, with NumPy installed:
 export OMP_NUM_THREADS=1
 export OPENBLAS_NUM_THREADS=1
 export MKL_NUM_THREADS=1
-python validate_normal.py --scenarios 1000000 --seed 11 22 33 --batch-size 4096 --output results/normal-validation-local/validation.csv
+
+python validate_normal.py \
+  --scenarios 1000000 \
+  --seed 11 22 33 \
+  --batch-size 4096 \
+  --output results/normal-validation-local/validation.csv
 ```
 
-A non-zero exit code indicates at least one tolerance failure (or an execution error). Existing output paths are rejected to preserve evidence. Reproducibility requires retaining seed, batch size, scenario count, code and numerical-library versions; changing batch size changes the random stream assignment.
+The script rejects an existing output file to preserve previous evidence. It returns a non-zero exit code if a tolerance comparison fails or an execution error occurs.
 
-## Required university cluster run
+Reproduction requires retaining the scenario count, seeds, batch size, code and numerical-library versions. Changing the batch size changes the assignment of random streams.
 
-Upload validate_normal.py and normal_validation.slurm to your own project folder in JupyterLab, open its terminal, change to that folder, then:
+For a new university cluster run:
 
 ```bash
 sbatch normal_validation.slurm
 squeue -u "$USER"
 ```
 
-Record the returned job ID. Submit once. After it leaves the queue, replace ID below with the actual number:
+After completion, replace ID with the new job number:
 
 ```bash
 sacct -j ID -o JobID,State,Elapsed,ExitCode
@@ -70,10 +161,8 @@ cat normal-validation-ID.out
 cat results/normal-validation-ID/validation.csv
 ```
 
-Confirm COMPLETED and exit code 0:0; inspect every CSV pass flag. Preserve the job output, resources.txt and CSV. This procedure was completed successfully for job 30985; no repeat submission is needed. The Slurm script uses the cpu partition and course environment path from the existing repository jobs.
+My completed run is job 30985; it does not need to be submitted again. The saved scripts and small evidence files are included in the repository. No .npy arrays are produced.
 
-Commit only the new script, Slurm script, report and small evidence files after reviewing them. No .npy files are produced.
+## Conclusion
 
-## Explain it to the group
-
-“We chose a simple portfolio whose loss distribution has a known mathematical answer. We calculated that answer, simulated a million possible days for each of three seeds, and compared the simulated VaR and ES with it. Differences arise because the sample is finite. This checks the simple normal model; it does not prove our crisis assumptions or monthly drawdown model are correct.”
+For all three seeds, the simulated VaR and ES were within 1% of their analytical values. This provides a reproducible known-answer check for the simple normal reference case, alongside the project's existing correctness and parallel-equivalence checks.
