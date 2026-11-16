@@ -203,7 +203,7 @@ squeue -u "$USER"
 **Done when:** we can show a fair full-size financial comparison, separately
 from the graph comparing execution speed.
 
-## Diego — integrate and prepare the group for tomorrow
+## WHEN READY (64 Million run) — integrate and prepare the group for tomorrow
 
 1. Do not submit a duplicate of job 30691. A teammate can inspect its state with
    `squeue -u pc47`. It needs the pc47 Jupyter server stopped to use the 64-CPU cap.
@@ -244,7 +244,3 @@ tail -n 30 ~/ospc_project/full-scaling-30691.out
 - Explain how the revised approach addresses each professor comment.
 - Know the next steps: overhead/shared memory, weak scaling, uncertainty/sensitivity,
   final presentation/report and reproducibility. They are not all finished tomorrow.
-
-The written brief does not specify a four-slide deck; that is our suggested
-compact format for a clear progress explanation. Do not promise a grade or
-claim unfinished work is complete.
