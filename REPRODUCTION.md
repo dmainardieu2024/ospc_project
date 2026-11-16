@@ -50,9 +50,10 @@ Diego's account:
 The example paths in `crisis_example_paths.csv` start at EUR 100,000 on day 0 and have 20 daily values, as
 expected.
 
-**Scaling plot (job 30338): [PASS / FAIL — fill in after opening strong_scaling.png].** `plot_scaling.py` rebuilt
-`strong_scaling.png`, `strong_scaling.pdf` and `scaling_summary.csv` from the saved `timings.csv` without
-rerunning any simulation. Note that the script overwrites these three files in place.
+**Scaling plot (job 30338): PASS.** `plot_scaling.py` rebuilt `strong_scaling.png`, `strong_scaling.pdf` and
+`scaling_summary.csv` from the saved `timings.csv` without rerunning any simulation (the three files show a new
+modification time, while `timings.csv` and `metadata.json` are unchanged). The redrawn graph matches the one in
+the repository. Note that the script overwrites these three files in place.
 
 ## Problems and corrections
 
