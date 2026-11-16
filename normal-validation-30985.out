@@ -1,0 +1,4 @@
+seed=11: VaR=2227.9499, ES=2551.7356, passed=True
+seed=22: VaR=2229.1549, ES=2557.0895, passed=True
+seed=33: VaR=2228.3845, ES=2555.2615, passed=True
+Results: results/normal-validation-30985/validation.csv
