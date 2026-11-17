@@ -19,6 +19,7 @@ from pathlib import Path
 import numpy as np
 
 from calculations.parallel import compute_parallel, result_digest
+from calculations.parallel_shm import compute_shared
 from calculations.simulate import Settings, compute
 
 
@@ -36,7 +37,7 @@ def main():
     parser.add_argument("--days", type=int, default=20)
     parser.add_argument("--seed", type=int, default=20261115)
     parser.add_argument("--workers", type=int, nargs="+", default=[1, 2, 4, 8, 16, 32])
-    parser.add_argument("--methods", nargs="+", choices=["threads", "processes"],
+    parser.add_argument("--methods", nargs="+", choices=["threads", "processes", "shared"],
                         default=["threads", "processes"])
     parser.add_argument("--repeats", type=int, default=5)
     parser.add_argument("--output", type=Path, required=True)
@@ -72,7 +73,7 @@ def main():
         "python_version": platform.python_version(),
         "source_sha256": {
             name: hashlib.sha256(Path(__file__).with_name(name).read_bytes()).hexdigest()
-            for name in ["simulate.py", "parallel.py", "benchmark.py"]
+            for name in ["simulate.py", "parallel.py", "parallel_shm.py", "benchmark.py"]
         },
         "started_utc": datetime.now(timezone.utc).isoformat(),
         "timing_boundary": "allocation + seeds + pool lifecycle + simulation + gathering; excludes validation, statistics and disk output",
@@ -113,6 +114,9 @@ def main():
                 before_cpu = cpu_seconds()
                 if method == "sequential":
                     result = compute(settings, args.scenarios, args.batch_size, args.seed, "crisis")
+                elif method == "shared":
+                    result = compute_shared(settings, args.scenarios, args.batch_size,
+                                            args.seed, "crisis", workers)
                 else:
                     result = compute_parallel(settings, args.scenarios, args.batch_size,
                                               args.seed, "crisis", workers, method)

@@ -51,7 +51,7 @@ def main():
         writer.writerows(summary)
 
     fig, axes = plt.subplots(1, 2, figsize=(11, 4.7))
-    colors = {"threads": "#2878B5", "processes": "#D46A28"}
+    colors = {"threads": "#2878B5", "processes": "#D46A28", "shared": "#3A9A5B"}
     for method in dict.fromkeys(metadata["methods"]):
         selected = sorted((row for row in summary if row["version"] == method),
                           key=lambda row: row["workers"])
