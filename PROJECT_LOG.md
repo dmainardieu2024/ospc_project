@@ -1,5 +1,64 @@
 # Project decisions and experiment log
 
+## 17 November 2026 — completed scaling and current status
+
+This entry supersedes earlier pending-work statements for full-size scaling, the independent normal reference and the initial reproduction task. Earlier dated entries are retained as history. See [README.md](README.md) for the current overview and [PROGRESS_REVIEW.md](PROGRESS_REVIEW.md) for the meeting guide.
+
+### Full-size strong scaling — completed across two allocations
+
+Workload: crisis model, 64,000,000 possible months, 50 assets, 20 days, batch size 4,096, seed 20261115. Sequential plus threads/processes at 1, 2, 4, 8, 16 and 32 workers; five repetitions each (65 measurements).
+
+Job 30691 originally ran for 02:29:18 and was PREEMPTED on 16 November. It had saved 25 measurements. Its later restart failed with exit code 2 because benchmark.py protects nonempty output directories. The failure did not erase the earlier measurements.
+
+Job 31181 used resume_scaling.py to validate the existing measurements and source hashes, check a fresh sequential reference, preserve a before-resumption backup and complete the 40 missing measurements. It completed successfully (COMPLETED, ExitCode 0:0) in 03:53:55. Metadata records completion on 17 November at 07:32 UTC. Both allocations ran on haskell; the logical CPU affinity lists differ and are retained.
+
+Evidence was committed as 456f0320981487e7c2bd9f0c78f98a39a3a621b7. The original folder name is retained: [results/full-scaling-30691/](results/full-scaling-30691/). It contains timings.csv, metadata.json, scaling_summary.csv, strong_scaling.png/PDF and before-resumption copies of the original metadata/timings. [resume-scaling-31181.out](resume-scaling-31181.out) records the continuation.
+
+An audit of the saved CSV found 65 unique configuration/repetition rows, exactly five repetitions per configuration, matching settings, all correct=True and one common digest:
+
+~~~text
+94a2c858b5df667aab580e85c656a80082fb084d8f8c0de443f4463aa22973b1
+~~~
+
+Recomputed medians, minimums, maximums, speedups and efficiencies agree with the published summary. This audits saved evidence; it is not a new cluster simulation.
+
+| Configuration | Median seconds | Speedup vs sequential |
+|---|---:|---:|
+| Sequential | 810.939627 | 1.0000 |
+| 1 thread | 783.724059 | 1.0347 |
+| 2 threads | 402.106076 | 2.0167 |
+| 4 threads | 199.221217 | 4.0705 |
+| 8 threads | 104.466716 | 7.7627 |
+| 16 threads | 67.338944 | 12.0427 |
+| 32 threads | 76.546314 | 10.5941 |
+| 1 process worker | 845.415032 | 0.9592 |
+| 2 process workers | 424.834876 | 1.9088 |
+| 4 process workers | 218.409592 | 3.7129 |
+| 8 process workers | 118.629242 | 6.8359 |
+| 16 process workers | 99.970034 | 8.1118 |
+| 32 process workers | 87.159583 | 9.3041 |
+
+Sixteen threads are fastest among tested configurations. Their range is 65.855586–69.863867 s; 32 threads range from 75.377779–78.108028 s. Processes continue improving from 16 to 32 workers at full size, unlike the preliminary experiment. Causes are unproven pending profiling/overhead measurements. Slightly above-ideal low-worker speedups are not evidence of a general superlinear benefit.
+
+The sequential median remains above 600 seconds. The separate job 30375 is the pinned one-CPU qualification. The scaling timings include output allocation, seed setup, pool lifecycle, generation and gathering; they exclude validation, financial summaries and disk writing. Timing repetitions reuse the same scenarios and do not quantify financial sampling uncertainty.
+
+**Limitation:** this experiment spans allocations after preemption and does not meet an uninterrupted single-allocation design. Disclose this at the review and obtain guidance on a clean single-allocation rerun for final assessment. Do not silently combine jobs while labelling them as one uninterrupted allocation.
+
+### Teammate work now completed
+
+- **Mia, package A:** [REPRODUCTION.md](REPRODUCTION.md) and [saved outputs](results/reproduction/) document independent checks, matching 1,000-month demo results and preliminary graph regeneration in account pc75. This used a GitHub ZIP; a fresh git-clone/environment-pinning test remains future work. The report's missing-script observations describe its earlier snapshot: profile_baseline.slurm and normal_comparison.slurm are now uploaded. The old prepare_full.slurm helper is unnecessary for the verified size.
+- **Leo, package C:** [NORMAL_VALIDATION.md](NORMAL_VALIDATION.md), validate_normal.py and [job 30985 evidence](results/normal-validation-30985/) document one million one-day arithmetic-normal scenarios for each of seeds 11, 22 and 33. All VaR/ES comparisons passed the unchanged provisional 1% relative tolerance. This is a known-answer check for the separate reference case, not an analytical validation of monthly maximum drawdown or market realism. The tolerance is not a confidence interval.
+
+### Current remaining work
+
+Completed evidence is not yet uploaded for package B (profiling, bottlenecks and Amdahl estimates) or package D (matching full-size normal-model financial result and normal/crisis comparison). Their job scripts are available. Owners should report actual job IDs/status and upload evidence; absence here does not establish whether they have run jobs privately.
+
+Further work: direct overhead measurements, multiprocessing.shared_memory, weak scaling, uncertainty across independent seeds, sensitivity, final report/presentation, fresh-clone reproducibility and syllabus-format AI acknowledgement. Specific approval of the revised question is still needed. This update changes documentation only; the measured simulation/parallel/benchmark code and raw evidence remain as recorded.
+
+---
+
+## Earlier entries — historical status at the time
+
 This log distinguishes completed work from plans. Update it after each meaningful
 change or experiment; commit the log with the relevant source and evidence.
 
