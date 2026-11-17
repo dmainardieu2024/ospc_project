@@ -1,6 +1,26 @@
-Traceback (most recent call last):
-  File "<frozen runpy>", line 198, in _run_module_as_main
-  File "<frozen runpy>", line 88, in _run_code
-  File "/home/pc01/ospc_project/calculations/benchmark.py", line 19, in <module>
-    import numpy as np
-ModuleNotFoundError: No module named 'numpy'
+repeat 1: sequential  1 workers, 0.820s, correct=True
+repeat 1: shared      1 workers, 0.934s, correct=True
+repeat 1: processes   2 workers, 0.713s, correct=True
+repeat 1: shared      2 workers, 0.724s, correct=True
+repeat 1: processes   1 workers, 0.917s, correct=True
+repeat 2: shared      2 workers, 0.727s, correct=True
+repeat 2: processes   2 workers, 0.721s, correct=True
+repeat 2: shared      1 workers, 0.941s, correct=True
+repeat 2: sequential  1 workers, 0.809s, correct=True
+repeat 2: processes   1 workers, 0.941s, correct=True
+repeat 3: shared      2 workers, 0.722s, correct=True
+repeat 3: shared      1 workers, 0.935s, correct=True
+repeat 3: sequential  1 workers, 0.811s, correct=True
+repeat 3: processes   2 workers, 0.720s, correct=True
+repeat 3: processes   1 workers, 0.937s, correct=True
+repeat 4: processes   2 workers, 0.719s, correct=True
+repeat 4: shared      2 workers, 0.715s, correct=True
+repeat 4: sequential  1 workers, 0.819s, correct=True
+repeat 4: processes   1 workers, 0.926s, correct=True
+repeat 4: shared      1 workers, 1.301s, correct=True
+repeat 5: processes   2 workers, 0.718s, correct=True
+repeat 5: sequential  1 workers, 0.811s, correct=True
+repeat 5: processes   1 workers, 0.934s, correct=True
+repeat 5: shared      2 workers, 0.719s, correct=True
+repeat 5: shared      1 workers, 0.933s, correct=True
+Saved repeated timings to /tmp/shm-preview
