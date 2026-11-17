@@ -65,10 +65,10 @@ def compute_shared(settings, scenarios, batch_size, seed, model, workers):
         # Copy out before unlinking: the views die with the blocks.
         results = [np.ndarray((scenarios,), dtype=dtype, buffer=block.buf).copy()
                    for (name, dtype), block in zip(OUTPUTS, blocks)]
-        elapsed = time.perf_counter() - begin
     finally:
         for block in blocks:
             block.close()
             block.unlink()
+    elapsed = time.perf_counter() - begin
     drawdowns, final_values, crisis_days = results
     return drawdowns, final_values, crisis_days, example_paths, elapsed
