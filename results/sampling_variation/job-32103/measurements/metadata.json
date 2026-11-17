@@ -1,0 +1,37 @@
+{
+  "experiment": "independent_seed_sampling_variation",
+  "date_utc": "2026-11-17T19:57:14.904316+00:00",
+  "scenarios": 262144,
+  "batch_size": 4096,
+  "seeds": [
+    101,
+    202,
+    303,
+    404,
+    505
+  ],
+  "models": [
+    "normal",
+    "crisis"
+  ],
+  "settings": {
+    "days": 20,
+    "assets": 50,
+    "initial_value": 100000.0,
+    "normal_log_mean": 0.0002,
+    "crisis_log_mean": -0.005,
+    "normal_log_vol": 0.012,
+    "crisis_log_vol": 0.035,
+    "normal_correlation": 0.25,
+    "crisis_correlation": 0.8,
+    "enter_crisis_probability": 0.01,
+    "leave_crisis_probability": 0.2
+  },
+  "python_version": "3.12.15",
+  "numpy_version": "2.5.4",
+  "node": "julia",
+  "slurm_job_id": "32103",
+  "source_commit": null,
+  "status": "completed",
+  "interpretation": "Descriptive across-seed spread at this scenario count; not a confidence interval or model validation."
+}

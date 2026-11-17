@@ -1,0 +1,14 @@
+PASS: hand-calculated drawdowns, flat market, disabled crises, repeatability,
+batch ordering, forced crises, positive values, drawdown bounds, binary outputs,
+tail summaries, output protection, and production-size selection.
+Still required: analytical normal-return benchmark and parallel equivalence tests.
+normal seed=101: drawdown99=0.065051
+normal seed=202: drawdown99=0.064781
+normal seed=303: drawdown99=0.064994
+normal seed=404: drawdown99=0.065327
+normal seed=505: drawdown99=0.064999
+crisis seed=101: drawdown99=0.154089
+crisis seed=202: drawdown99=0.153863
+crisis seed=303: drawdown99=0.153836
+crisis seed=404: drawdown99=0.154786
+crisis seed=505: drawdown99=0.153376
