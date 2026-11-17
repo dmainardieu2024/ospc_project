@@ -1,8 +1,22 @@
-# Work packages for the 17 November progress review
+# Work packages and status — 17 November progress review
 
-Assign one owner to A, B, C and D. Diego owns job 30691, collecting its results,
-integration, and the shared review explanation. These are four real work packages,
-not a requirement to duplicate experiments. Agree the owners before starting.
+## Current status — 17 November 2026
+
+Use this table for current assignments. Detailed package procedures below are retained for reproduction and follow-up; completed packages do not need to be recreated.
+
+| Package | Current evidence | Next action |
+|---|---|---|
+| A — Mia: independent reproduction | Completed: [REPRODUCTION.md](REPRODUCTION.md) and [outputs](results/reproduction/). Checks, demo and preliminary graph reproduced from a ZIP in another account. | Rehearse the updated [meeting guide](PROGRESS_REVIEW.md). A later fresh-clone/environment-pinning test remains. |
+| C — Leo: mathematical reference | Completed: [NORMAL_VALIDATION.md](NORMAL_VALIDATION.md), validate_normal.py and [job 30985 evidence](results/normal-validation-30985/). All three seeds passed the stated VaR/ES tolerance. | Explain what the separate one-day test validates and its limits. |
+| Diego: full-size strong scaling and integration | Completed: [65 measurements and graph](results/full-scaling-30691/), across jobs 30691 and 31181. | Present the 810.94 s sequential median, 67.34 s at 16 threads and 12.04x speedup; disclose resumption. |
+| B — profiling/Amdahl | Script uploaded. Completed profiling report/results not yet uploaded at this review. | Owner reports actual status/job ID, uploads completed evidence and PROFILING.md plus Amdahl table. |
+| D — full-size normal/crisis comparison | Script uploaded. Matching full-size normal result/comparison not yet uploaded at this review. | Owner reports actual status/job ID, uploads small summaries, comparison code/table/chart and FINANCIAL_RESULTS.md. |
+
+Confirm the owners of B and D within the group; no owner is inferred here. If work is already running, inspect it rather than submitting duplicates. Missing GitHub evidence does not prove a teammate has not run a job privately.
+
+The full-size graph uses the crisis model only. Package C's one-day normal VaR test is separate from package D's monthly normal/crisis comparison. The provided profile_baseline.slurm and normal_comparison.slurm scripts are now available. The old prepare_full.slurm helper is unnecessary for the verified workload.
+
+The full-size scaling experiment finished after preemption and continuation on the same node but different allocations. It does not meet an uninterrupted single-allocation design; ask the professor about a clean rerun for final assessment. Weak scaling, shared memory, overhead measurements and uncertainty/sensitivity remain future work.
 
 ## Everyone: get oriented first (about 15 minutes)
 
@@ -44,7 +58,7 @@ tokens, or other people's unreviewed files. Never share the pc47 login.
 If a required script is missing from GitHub, report its exact filename to Diego.
 Files existing only in Diego's JupyterLab are not available to the team.
 
-## A — Independently reproduce and explain the project
+## A — Independently reproduce and explain the project (completed; procedure retained)
 
 **Goal:** establish that a teammate can run the project from GitHub, and create
 the short explanation the whole group will rehearse. This is not just proofreading.
@@ -123,10 +137,10 @@ squeue -u "$USER"
 **Done when:** the group has a measured bottleneck, a qualified initial serial
 estimate and an explanation of what Amdahl does/does not account for.
 
-## C — Build the professor's independent known-answer case
+## C — Build the professor's independent known-answer case (completed; specification retained)
 
 **Goal:** implement the separate simple case for which the financial answer is
-known. This is NEW work; validate_normal.py does not exist yet.
+known. Leo has completed this package; validate_normal.py and the evidence are uploaded. The following specification is retained to explain and reproduce the completed test.
 
 1. Read the professor's feedback and the existing check.py. Understand why
    parallel versions agreeing is different from agreeing with a known answer.
@@ -203,38 +217,22 @@ squeue -u "$USER"
 **Done when:** we can show a fair full-size financial comparison, separately
 from the graph comparing execution speed.
 
-## WHEN READY (64 Million run) — integrate and prepare the group for tomorrow
+## Integrate completed results and prepare the 17 November review
 
-1. Do not submit a duplicate of job 30691. A teammate can inspect its state with
-   `squeue -u pc47`. It needs the pc47 Jupyter server stopped to use the 64-CPU cap.
-2. When it has ended, restart your server and inspect:
+1. The full-size experiment is completed and uploaded. Open [the graph](results/full-scaling-30691/strong_scaling.png) and [summary](results/full-scaling-30691/scaling_summary.csv); do not submit a duplicate to prepare this meeting.
+2. Five repetitions exist for each of 13 configurations. All 65 result digests agree. The original folder name remains full-scaling-30691 even though job 31181 finished it.
+3. The main result is 810.94 s sequentially versus 67.34 s with 16 threads (12.04x). At full size, threads slow down from 16 to 32 workers, while processes continue improving. Causes need profiling.
+4. If the figure needs rebuilding, run only:
 
-```bash
-sacct -j 30691 -o JobID,State,Elapsed,ExitCode
-tail -n 30 ~/ospc_project/full-scaling-30691.out
-```
-
-3. If completed successfully, open results/full-scaling-30691/strong_scaling.png
-   and scaling_summary.csv. They should already exist. If plotting needs to be
-   repeated after a display/file problem, run only:
-
-```bash
+~~~bash
 /data/software/envs/ospc/bin/python plot_scaling.py results/full-scaling-30691
-```
+~~~
 
-   If the script reports incomplete/failed data, inspect the job; do not label a
-   partial run as complete or rerun all simulations without diagnosing the issue.
-4. Commit and push the small full-scaling result directory so teammates can get
-   it. Update PROJECT_LOG.md with the actual outcome; submitted is not completed.
-5. Integrate teammates' reports. Hold a walkthrough: each member explains one
-   scenario, one batch, a correctness check, and one graph point in their own words.
-6. Assemble the four-slide outline from task A using actual results. Keep the
-   first graph as a labelled fallback if the new job fails or is still pending.
-7. Explain the revised model and unresolved questions to the professor through
-   the group Blackboard conversation or in tomorrow's review. The final report
-   and shared-memory/weak-scaling work are not all due tomorrow.
+5. Read [PROJECT_LOG.md](PROJECT_LOG.md) for the preemption/resumption record and [PROGRESS_REVIEW.md](PROGRESS_REVIEW.md) for the four-part walkthrough. Explain the two-allocation limitation openly.
+6. Integrate B/D evidence when uploaded. Status claims must follow actual completed evidence. Do not treat either package as completed from the presence of a script alone.
+7. Rehearse: each member explains one scenario, one batch, one correctness check, blue versus orange and one graph point in their own words. Obtain professor feedback on the revised question, reference test and single-allocation requirement.
 
-## A practical 'ready for tomorrow' checklist
+## Ready for the 17 November review
 
 - Everyone can explain the question and why simulation is useful for it.
 - Show one honest, labelled scaling plot, repeats/spread and correctness evidence.
@@ -243,4 +241,4 @@ tail -n 30 ~/ospc_project/full-scaling-30691.out
 - Describe what remains unproven; identify who is doing the next tasks.
 - Explain how the revised approach addresses each professor comment.
 - Know the next steps: overhead/shared memory, weak scaling, uncertainty/sensitivity,
-  final presentation/report and reproducibility. They are not all finished tomorrow.
+  final presentation/report and reproducibility. These remain final-project work.
