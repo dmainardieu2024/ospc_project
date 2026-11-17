@@ -16,7 +16,6 @@ import numpy as np
 
 @dataclass(frozen=True)
 class Settings:
-    # Illustrative assumptions, not estimates fitted to historical data.
     days: int = 20
     assets: int = 50
     initial_value: float = 100_000.0
