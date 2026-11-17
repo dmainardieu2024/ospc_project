@@ -1,67 +1,80 @@
-# Progress review, Tuesday 17 November: four-slide outline
+# Progress review — Tuesday 17 November 2026
 
-Group 3: Diego Alfaro, Markel Artamendi, Leo Ayyashi, Diego Mainardi, Mia Marcelli
+Group 3: Diego Alfaro, Markel Artamendi, Leo Ayyashi, Diego Mainardi, Mia Marcelli.
 
-## Slide 1. The question, and how we responded to the feedback
+This is a four-part meeting guide. Use the [full-size graph](results/full-scaling-30691/strong_scaling.png) as the main figure. The final project remains in progress.
 
-- **New question:** for EUR 100,000 split equally across 50 stocks and held for one month (20 trading days),
-  how bad is the maximum drawdown in the worst 1% of months, under normal markets and under markets that
-  can switch into a crisis?
-- **Why we changed it:** the professor pointed out that one-day VaR with normal returns has a closed form.
-  Our new question needs simulation:
-  - the drawdown depends on the whole path of the month, not just the final value;
-  - crises start and end at random (on any day there is a 1% chance a crisis starts; once in a crisis,
-    a 20% chance each day that it ends);
-  - in a crisis, volatility rises from 1.2% to 3.5% a day, the average return turns negative and the
-    correlation between stocks rises from 0.25 to 0.80.
-- This also makes our project clearly different from the other Monte Carlo VaR team.
-- The one-day normal VaR stays as our **known-answer test** (package C, in progress).
-- **Ask the professor:** do you approve the revised question?
+## 1. Question and response to feedback
 
-## Slide 2. What the program does, and how we know it is correct
+**Say:** We simulate EUR 100,000 initially divided equally across 50 fictional stocks, held for 20 trading days. Each scenario is one possible month. We measure maximum drawdown: the largest fall from an earlier portfolio high. We examine the 99th-percentile drawdown threshold and the mean of the largest 1% of drawdowns.
 
-- One scenario is one possible month. The size parameter is the number of months (64 million at full size).
-- The months are generated in fixed batches of 4,096. **Each batch has its own random stream from
-  `SeedSequence.spawn`**, so the results do not depend on the number of workers or on the order in which
-  they finish.
-- `check.py`: hand-calculated drawdowns, a flat market, crises switched off and forced on, batch order, output
-  files: all pass.
-- `check_parallel.py`: threads and processes give byte-identical results to the sequential version. The
-  benchmark also checks every timed run against the reference.
-- Reproduced independently in a second account (pc75) with identical results (REPRODUCTION.md).
-- BLAS threads are set to 1 in every version (`OMP_NUM_THREADS`, `OPENBLAS_NUM_THREADS`, `MKL_NUM_THREADS`).
+The original one-day normal VaR problem has a mathematical solution. Our revised calculation depends on the daily path and on random switches into persistent crisis conditions. The crisis model changes mean log returns, volatility and stock correlations. The comparison is synthetic; it does not predict actual crashes.
 
-## Slide 3. Baseline and first scaling plot
+The simple one-day arithmetic-normal model remains a separate known-answer test, now completed by Leo. Specific professor feedback on the revised monthly drawdown question is still needed.
 
-- **Full baseline (job 30375):** 64 million months on one pinned CPU, 800 s of computation (meets the
-  10-minute rule). `/usr/bin/time -v`: 99% CPU, peak memory 1.8 GB, no swapping: the workload is
-  CPU-bound, not limited by I/O.
-- **First strong-scaling plot (job 30338):** strong_scaling.png, labelled **2,097,152 months** (a preliminary
-  size, not the full workload). 1–32 workers, 5 repeats, median with min–max bars.
-  - Threads scale almost ideally up to 8 workers and are fastest at 16 workers: 1.91 s, a 13.2× speedup.
-  - Processes reach 10.3× at 16 workers.
-  - Both get slightly **slower** from 16 to 32 workers.
-  - Threads beat processes because NumPy releases the GIL in our heavy operations, and threads avoid
-    starting processes and copying results.
-- **Full-size scaling (job 30691):** [replace with the 64-million-month plot if it has finished; otherwise
-  say it is pending].
+**Ask:** Is this revised question sufficiently justified and differentiated from the other Monte Carlo VaR project?
 
-## Slide 4. Problems, next steps and questions
+## 2. Calculation and correctness
 
-- **Open problem:** why does going from 16 to 32 workers make it slower? Hypotheses to test, not conclusions:
-  - pool start-up and gathering overhead (at 2 million months each worker has only 16 batches);
-  - memory bandwidth;
-  - page faults: the baseline had 97 million minor page faults and 42 s of system time, because new arrays
-    are allocated every simulated day;
-  - workers placed on the two hardware threads of one core.
-- **Next steps:**
-  - profiling with cProfile and the Amdahl serial fraction (package B);
-  - the known-answer normal case (package C);
-  - the full-size normal vs crisis comparison (package D);
-  - `multiprocessing.shared_memory`, to measure how much data movement it saves;
-  - weak scaling, direct overhead measurements, and statistical uncertainty across independent seeds.
-- **Blocker:** three job scripts (`profile_baseline.slurm`, `normal_comparison.slurm`, `prepare_full.slurm`)
-  still have to be pushed to GitHub.
-- **Questions for the professor:**
-  1. Is the revised drawdown question approved?
-  2. Is the one-day normal VaR an acceptable known-answer test for it?
+**Say:** Months are generated in fixed batches of 4,096. Each batch has its own SeedSequence.spawn stream. Workers calculate different batches; they do not divide the model into different financial tasks. Sequential, thread and process versions use the same simulation kernel and fixed batch streams.
+
+- check.py covers hand-calculated paths, flat markets, disabled/forced crises, repeatability, batch order and saved outputs.
+- check_parallel.py passed all eight small comparisons: normal/crisis, threads/processes, 1/2 workers.
+- Every one of the 65 full-size crisis timing measurements has the same output digest as its reference.
+- Mia independently reproduced the checks, small demo and preliminary graph in account pc75. See [REPRODUCTION.md](REPRODUCTION.md). This used a GitHub ZIP, not a fresh git-clone/environment-pinning test.
+- Leo's job 30985 compared simulated one-day normal VaR/ES against analytical answers for seeds 11, 22 and 33, one million scenarios each. All six comparisons passed a provisional 1% relative-error tolerance. See [NORMAL_VALIDATION.md](NORMAL_VALIDATION.md). This validates the separate reference case, not monthly drawdown or market realism.
+
+**Distinction:** 64 million months are simulation scenarios. Five repetitions rerun a configuration on the same scenarios to measure timing variability; they do not measure financial sampling uncertainty.
+
+## 3. Main graph and results
+
+Open [strong_scaling.png](results/full-scaling-30691/strong_scaling.png). Evidence: [raw timings](results/full-scaling-30691/timings.csv), [summary](results/full-scaling-30691/scaling_summary.csv), [metadata](results/full-scaling-30691/metadata.json).
+
+**Say:** This is strong scaling: the total workload remains 64 million months, 50 stocks and 20 days while the worker count changes. Both coloured lines use the crisis financial model. Blue means threads within one process; orange means separate worker processes coordinated by a main process.
+
+| Configuration | Median seconds | Speedup |
+|---|---:|---:|
+| Sequential | 810.94 | 1.00x |
+| 8 threads | 104.47 | 7.76x |
+| **16 threads** | **67.34** | **12.04x** |
+| 32 threads | 76.55 | 10.59x |
+| 16 processes | 99.97 | 8.11x |
+| 32 processes | 87.16 | 9.30x |
+
+The left panel shows runtime: lower is better. The right shows sequential time divided by parallel time: higher is better. Grey dashed lines represent ideal scaling. Dots are medians of five runs; runtime bars show minimum to maximum. There are 13 configurations and five repetitions: 65 timed calculations plus reference checks, explaining the multi-hour experiment.
+
+**Finding:** 16 threads are fastest among tested configurations. Threads are faster than processes at every matching worker count. At full size, threads slow down from 16 to 32 workers; processes continue improving. The causes remain to be measured. Worker startup, result transfer, memory effects, placement and shared-node contention are hypotheses.
+
+The separate one-CPU qualification, job 30375, took 799.94 s computation on one pinned logical CPU, meeting the 10-minute workload criterion. Its peak RSS was about 1.77 GiB, CPU usage 99%, with no swapping. This indicates a busy CPU and little blocking; it does not distinguish arithmetic from memory/allocation costs.
+
+**Disclose:** Slurm preempted job 30691 after 25 measurements. Job 31181 completed the remaining 40 on haskell and finished successfully in 03:53:55. The figure and metadata identify both allocations. This is not an uninterrupted single-allocation experiment; CPU affinity changed between allocations. Ask whether a clean single-allocation rerun is required for final assessment.
+
+Timing includes allocation, seed setup, pool startup/shutdown, simulation and gathering. Validation, financial summaries and writing are excluded. Numerical-library thread limits are 1. The preliminary 2,097,152-month graph is retained in results/scaling-30338 as earlier evidence.
+
+## 4. Problems, next work and questions
+
+Completed: the simulation/checks, Mia's reproduction, Leo's known-answer test, one-CPU qualification and resumed full-size strong scaling.
+
+Completed evidence is still needed in GitHub for:
+
+- **Package B:** cProfile report, expensive functions, qualified serial-fraction estimate and Amdahl comparison. profile_baseline.slurm is uploaded.
+- **Package D:** matching full-size normal-model summary, financial comparison table/chart and interpretation. normal_comparison.slurm is uploaded.
+
+The crisis-only full-size financial result is a 15.40% drawdown threshold and a 19.19% mean in the worst 1%. We cannot yet present a completed full-size normal/crisis comparison from the uploaded evidence.
+
+For the final project: measure overhead, implement/compare multiprocessing.shared_memory, weak scaling, independent-seed uncertainty, sensitivity analysis, final report/presentation, fresh-clone reproduction and syllabus-format AI acknowledgement.
+
+Weak scaling would increase months in proportion to workers while keeping work per worker constant; ideal runtime would stay flat. This has not yet been completed.
+
+**Questions for the professor:**
+
+1. Is the revised monthly drawdown question approved?
+2. Is the separate one-day normal known-answer test an appropriate complement to hand-path and equivalence checks?
+3. How should we handle the preempted/resumed experiment against the single-allocation requirement?
+4. Which profiling and overhead comparisons should we prioritise next?
+
+## Repository walkthrough
+
+Start with [README.md](README.md), show the main graph, and open its evidence folder only if asked. Calculation files, tests, job scripts and separate evidence folders have different roles; there is no need to open every file during the meeting.
+
+Before presenting, each member should explain one scenario, one batch, the two colours, one graph point, one correctness check and one limitation in their own words. AI-assisted code/explanations have been used; retain the required acknowledgement in the final submission.
