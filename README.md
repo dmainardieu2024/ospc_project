@@ -1,105 +1,83 @@
-# OSPC: portfolio crashes and parallel simulation
+# OSPC: portfolio drawdowns and parallel simulation
 
-**Start here.** This README is the project's front page: what it does, what has
-actually been completed, and how a teammate can run a small example.
+**Progress review: 17 November 2026.** Start with the [meeting guide](PROGRESS_REVIEW.md), the [full-size graph](results/full-scaling-30691/strong_scaling.png), and the [results table](results/full-scaling-30691/scaling_summary.csv).
 
-Read [TEAM_TASKS.md](TEAM_TASKS.md) for exact teammate assignments and commands.
-Read [PROJECT_LOG.md](PROJECT_LOG.md) for decisions, settings and experiment evidence.
+## The question
 
-## 1. The question in plain English
+We simulate EUR 100,000 initially split equally across 50 fictional stocks and held for 20 trading days. For each possible month, we calculate maximum drawdown: the largest percentage fall from an earlier portfolio high. A portfolio rising from EUR 100,000 to EUR 110,000 and then falling to EUR 77,000 has a 30% drawdown, whatever its final value.
 
-Imagine EUR 100,000 invested equally in 50 fictional stocks. We buy and hold for
-20 trading days (one month). The stocks change value each day. We record the
-portfolio's **maximum drawdown**: the biggest percentage fall from a previous high.
+We examine the 99th-percentile drawdown threshold, the average of the largest 1% of drawdowns, and the frequency of drawdowns above 20%. The intended financial comparison is between constant normal conditions and a model that can enter persistent crisis conditions with higher volatility, stronger correlations and more negative mean log returns. Inputs are illustrative assumptions, not historical calibration or real crash forecasts.
 
-Example: EUR 100,000 rises to EUR 110,000, falls to EUR 77,000 and finishes at
-EUR 102,000. It finishes up 2%, but suffered a maximum drawdown of 30%.
+The original one-day normal VaR problem has an analytical answer. Monthly maximum drawdown depends on the daily path. We retained the simple one-day arithmetic-normal model as a separate known-answer test; [that validation is completed](NORMAL_VALIDATION.md). Specific professor feedback on the revised drawdown question is still needed.
 
-We generate many possible months and examine the largest 1% of their drawdowns:
-the 99th-percentile threshold and the average maximum drawdown in that tail.
+## Completed work
 
-We compare two synthetic market models:
-
-| Normal | Normal/crisis |
+| Work | Evidence and result |
 |---|---|
-| Same assumptions every day. | Can switch into crisis conditions lasting several days. |
-| Smaller typical fluctuations. | Larger fluctuations and more negative average log returns in crisis. |
-| Moderate common movement between stocks. | Stronger common stock movement in crisis. |
+| Small correctness checks | Hand-calculated paths, controlled cases and output checks; see [reproduction outputs](results/reproduction/). |
+| Parallel equivalence | Both models match sequential outputs in small thread/process checks. Every timed full-size crisis result also matched its reference. |
+| Independent reproduction — Mia | [REPRODUCTION.md](REPRODUCTION.md): checks, small demo and preliminary graph rebuilt in another account from a GitHub ZIP. |
+| Analytical normal reference — Leo | [NORMAL_VALIDATION.md](NORMAL_VALIDATION.md): three seeds, one million scenarios each; all VaR/ES comparisons within the stated 1% tolerance. This is not an analytical validation of monthly drawdown. |
+| One-CPU qualification | [Job 30375](results/full-baseline-30375/): 64 million months, 799.94 s computation on one pinned logical CPU, peak RSS about 1.77 GiB. |
+| Full-size strong scaling | [Results](results/full-scaling-30691/): 65 validated measurements; 13 configurations, five repetitions each. Completed across jobs 30691 and 31181. |
 
-These are chosen assumptions, not historical estimates or real crash forecasts.
-The professor approved the original Monte Carlo direction; this revised question
-still needs specific feedback. We retain the original normal one-day question
-as a planned known-answer validation case. Monthly drawdown statistics are not
-the original one-day VaR/ES.
+## Main performance result
 
-## 2. The computing experiment
+The same **64 million possible months, 50 stocks and 20 days** are calculated sequentially, with threads, and with processes. Pool worker counts are 1, 2, 4, 8, 16 and 32. This is **strong scaling**: fixed total work, increasing workers. The graph uses the **crisis model only**; blue/orange distinguish execution methods, not financial models.
 
-The same calculation runs sequentially, in a thread pool, or in a process pool.
-Workers calculate different batches of months and the parent collects results.
-The financial model is unchanged when the execution method changes.
+| Configuration | Median seconds | Speedup vs sequential |
+|---|---:|---:|
+| Sequential | 810.94 | 1.00x |
+| 8 threads | 104.47 | 7.76x |
+| **16 threads** | **67.34** | **12.04x** |
+| 32 threads | 76.55 | 10.59x |
+| 16 processes | 99.97 | 8.11x |
+| 32 processes | 87.16 | 9.30x |
 
-- **50 stocks** = investments in the portfolio.
-- **20 days** = length of each simulated month.
-- **64 million months** = independent scenario paths in the full-size workload.
-- **1, 2, 4, 8, 16, 32 workers** = the execution configurations being compared.
-- **Five repetitions** = rerun each whole configuration to measure timing variation.
+![Full-size strong scaling: runtime and speedup](results/full-scaling-30691/strong_scaling.png)
 
-The repeated timing runs reuse the same seed and scenarios. They do not provide
-additional independent observations for estimating financial uncertainty.
-SeedSequence.spawn assigns random streams to fixed batches, not workers, so
-changing the worker count must preserve the results. Production batch size: 4,096.
+Each point is the median of five runs; runtime bars show min–max. The fastest tested configuration was 16 threads. At full size, threads became slower from 16 to 32 workers; processes continued improving. Causes remain to be measured with profiling and overhead experiments.
 
-Scenarios are generated as the program runs. We do not first build a giant
-stock-price spreadsheet. We retain monthly results, not every asset's daily path.
+**Measurement limitation:** Slurm preempted job 30691 after 25 measurements. Job 31181 completed the remaining 40 on the same node, haskell, in another allocation. The original measurements, new job IDs and both affinity lists are preserved. This is a completed resumed experiment, not an uninterrupted single-allocation experiment. Ask whether a clean single-allocation rerun is required for final assessment.
 
-## 3. Verified progress as of 16 November 2026
+Fixed batches of 4,096 use SeedSequence.spawn streams assigned to batch IDs. All 65 full-size output digests match. Timings include allocation, seeds, pool lifecycle, simulation and gathering; validation, financial summaries and disk output are excluded. BLAS/OpenMP thread limits are 1. Five timing repetitions reuse the same scenarios and measure runtime variation, not financial sampling uncertainty. There are 65 timed calculations plus reference checks, which explains the several-hour experiment duration.
 
-| Experiment | Status and finding |
+## Where the results are
+
+| Folder | Purpose |
 |---|---|
-| Small checks and 1,000-month financial demo | Completed on the cluster. |
-| Thread/process equivalence checks | Passed for both market models at 1/2 workers; byte-identical outputs. |
-| Preliminary scaling, job 30338 | Completed: 2,097,152 months, both pools at 1-32 workers, five repeats. Every timed result matched. |
-| Full sequential baseline, job 30375 | Completed: 64 million months, one pinned CPU, computation 799.94 s, peak RSS about 1.77 GiB. Meets >=10-minute workload criterion. |
-| Full repeated scaling, job 30691 | Submitted; start/completion/results not yet verified here. |
+| [full-scaling-30691](results/full-scaling-30691/) | **Main full-size performance result:** raw timings, metadata, summary, PNG/PDF and the pre-resumption backup. The original folder name was retained when job 31181 continued it. |
+| [full-baseline-30375](results/full-baseline-30375/) | One-CPU runtime/memory evidence and full-size crisis financial summary. |
+| [scaling-30338](results/scaling-30338/) | Preliminary 2,097,152-month experiment, retained as earlier evidence. |
+| [normal-validation-30985](results/normal-validation-30985/) | Separate mathematical reference test and cluster evidence. |
+| [reproduction](results/reproduction/) | Another account's correctness and demo outputs. |
 
-Preliminary result: sequential median 25.21 s; fastest tested configuration was
-16 threads, 1.91 s (13.21x). Adding workers beyond 16 did not help at that size.
-Do not present those numbers as the still-pending full-size scaling results.
+In the main experiment folder, timings.csv holds all 65 measurements; scaling_summary.csv holds the 13 summaries; metadata.json records settings and allocations. To redraw the graph without simulating again:
 
-The full-size crisis model gave a 15.40% drawdown threshold for the worst 1%
-and a 19.19% average maximum drawdown within that tail. Full-size normal-model
-comparison, uncertainty intervals and sensitivity analysis are still pending.
+~~~bash
+python plot_scaling.py results/full-scaling-30691
+~~~
 
-Tomorrow's 17 November progress review asks for progress, a first scaling plot
-and current problems. We already have the preliminary plot. A successfully
-completed full-size job generates the updated plot automatically. We still need
-to understand/explain the work, profile it, document limitations and obtain feedback.
+## Code and tools
 
-## 4. Tools and files
-
-| Tool/file | What it does |
+| Files/tool | Role |
 |---|---|
-| JupyterLab | Workspace on the university computer: editor, files, terminal, notebooks. |
-| GitHub | Shared, versioned code, documentation and small evidence files. |
-| Slurm / sbatch | Allocates resources and runs batch experiments. |
-| NumPy | Random generation and numerical array operations. |
-| simulate.py | Shared financial model, sequential calculation and saved financial results. |
-| parallel.py | Thread/process pools using the same financial kernel and batch streams. |
-| check.py / check_parallel.py | Automated small-case and equivalence checks. |
-| benchmark.py | Repeated fixed-size timing experiments; checks every output against a reference. |
-| plot_scaling.py | Rebuilds runtime/speedup graphs from timing CSVs. |
-| full_baseline.py / full_baseline.slurm | Full-size one-CPU qualification and output inspection. |
-| full_scaling.slurm | Full-size repeated strong scaling; current job 30691 was submitted from it. |
-| profile_baseline.slurm | New small diagnostic cProfile job; not yet cluster-verified. |
-| normal_comparison.slurm | New full normal-model financial comparison; not yet cluster-verified. |
-| calibrate.py / produce.py / prepare_full.slurm | Earlier size-calibration helpers; not needed to repeat current verified size. |
+| simulate.py / parallel.py | Financial calculation; sequential and thread/process execution. |
+| check.py / check_parallel.py / validate_normal.py | Controlled correctness, equivalence and known-answer checks. |
+| benchmark.py / plot_scaling.py | Repeated timings and graphs from saved measurements. |
+| full_baseline.py and .slurm files | Baseline verification and cluster job instructions. |
+| resume_scaling.py / resume_scaling.slurm | Recovery of missing measurements after preemption. |
+| profile_baseline.slurm / normal_comparison.slurm | Provided scripts for remaining profiling and financial-comparison tasks; completed evidence not yet uploaded at this review. |
+| calibrate.py / produce.py | Earlier workload-preparation helpers. |
+| JupyterLab / Slurm / GitHub | Cluster workspace / job scheduler / shared versioned source and evidence. |
 
-## 5. Get the project and run small checks
+See [PROJECT_LOG.md](PROJECT_LOG.md) for history and [TEAM_TASKS.md](TEAM_TASKS.md) for task status and commands.
 
-Sign in to GitHub and accept the repository invitation first. Open your own
-university JupyterLab account and a terminal. If Git authentication is configured:
+## Run a small example
 
-```bash
+Accept the private repository invitation and use your own cluster account. With Git authentication configured:
+
+~~~bash
 cd ~
 git clone https://github.com/dmainardieu2024/ospc_project.git
 cd ospc_project
@@ -110,60 +88,19 @@ export MKL_NUM_THREADS=1
 python check.py
 python check_parallel.py
 python simulate.py --scenarios 1000 --batch-size 4096 --output results/my-demo
-```
+~~~
 
-If the repository is already cloned, enter that folder and use `git pull` first;
-do not clone over existing work. Git may ask for credentials; finish its prompts
-before entering more commands. Your normal GitHub password is not a Git token.
-Do not share passwords/tokens. If authentication is blocked, TEAM_TASKS.md gives
-a browser-download route without putting credentials into a shell command.
+For an existing clone, save/commit local work and integrate upstream changes before running updated code. A GitHub ZIP is an alternative snapshot; extract it with unzip in the terminal. Double-clicking a ZIP as text in JupyterLab can produce a harmless UTF-8 error. Use a fresh output folder to preserve earlier results. Never share credentials or tokens.
 
-These are small development checks intended to finish well under five minutes,
-subject to the environment. They do not submit another full-size experiment.
-Record any missing files/dependencies rather than reporting a failed check as passed.
-Existing output folders are protected; choose a new name if a demo already exists.
+The verified cluster environment was Python 3.12.15 and NumPy 2.5.4; Matplotlib is needed for plots. Record actual versions. The full environment is not yet pinned or verified by a fresh-clone test. Large .npy scenario arrays are excluded from Git. Push small evidence files so teammates can access them; another cluster account cannot automatically see your home folder. The old final message in check.py predates the completed parallel and analytical checks; consult the dedicated checks and reports for their current status.
 
-The course environment provides NumPy and Matplotlib. Historical verified cluster
-environment: Python 3.12.15 / NumPy 2.5.4. Record your actual versions; the full
-environment has not yet been pinned or audited with a fresh clone.
+## Remaining work
 
-## 6. Results and how to regenerate graphs
+- Upload completed profiling evidence, identify bottlenecks and compare measured/inferred serial fractions with Amdahl's model.
+- Complete and document the full-size normal/crisis financial comparison. The saved full-size crisis summary alone gives a 15.40% drawdown threshold and a 19.19% mean in the worst 1%; a matching full-size normal result is still needed.
+- Measure overhead, implement/compare multiprocessing.shared_memory, and run weak scaling.
+- Quantify sampling uncertainty across independent seeds and assess parameter sensitivity.
+- Obtain feedback on the revised question and the interrupted-allocation limitation.
+- Prepare final report/presentation, fresh-clone reproducibility and syllabus-format AI acknowledgement. AI-assisted code and explanations have been used.
 
-| Directory | Contents |
-|---|---|
-| results/scaling-30338/ | Preliminary raw timings, metadata, table and plots. |
-| results/full-baseline-30375/ | Full-size one-core resource report and financial summaries. |
-| results/full-scaling-30691/ | Current repeated full-size experiment, if it has started. |
-
-When job 30691 completes successfully, it automatically calls the plotting script.
-Once its files have been shared through GitHub, anyone can redraw the graph:
-
-```bash
-python plot_scaling.py results/full-scaling-30691
-```
-
-That reads the saved measurements; it does NOT rerun the simulations. The script
-refuses incomplete/failed experiments. Output: strong_scaling.png, strong_scaling.pdf
-and scaling_summary.csv. Runtime error bars show minimum-to-maximum across repeats.
-
-Commit source, job scripts, raw timing CSVs, metadata, small summaries and graphs.
-Keep the reproducible large .npy scenario arrays out of Git. An ordinary teammate
-does not automatically see Diego's private cluster home: results must be pushed
-before teammates can get them. Downloading a ZIP is a snapshot, not a live sync.
-
-## 7. Important remaining work
-
-- Inspect/retain the full-size scaling results; diagnose the slowdown honestly.
-- cProfile and profiling-based/inferred serial-fraction comparison.
-- Independent analytical normal-case check requested by the professor.
-- Full-size normal/crisis financial comparison.
-- For the final project: direct overhead measurements, shared memory, weak scaling,
-  statistical uncertainty/sensitivity, final report and presentation, fresh-clone
-  reproducibility and syllabus-format AI acknowledgement.
-
-Do not change simulate.py, parallel.py or benchmark.py in the account running
-job 30691 while it is executing: spawned workers import those files. Other
-members should use their own account/copy and create separate task files.
-
-Each member must understand their work and commit their own contributions.
-See TEAM_TASKS.md for concrete tasks and completion conditions.
+These are progress-review results; completion of the performance experiment does not mean the final project is finished.
