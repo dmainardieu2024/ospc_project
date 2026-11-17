@@ -1,0 +1,45 @@
+Resuming results/full-scaling-30691; node haskell; job 31181; restart 0
+Preserved 25 of 65 measurements; 40 remain.
+Checking a fresh sequential reference against saved result digests...
+repeat 2: threads     2 workers, 395.531s, correct=True
+repeat 3: processes   1 workers, 850.067s, correct=True
+repeat 3: threads    32 workers, 78.108s, correct=True
+repeat 3: threads     8 workers, 104.394s, correct=True
+repeat 3: processes  32 workers, 87.160s, correct=True
+repeat 3: threads     2 workers, 403.660s, correct=True
+repeat 3: processes  16 workers, 107.356s, correct=True
+repeat 3: processes   4 workers, 219.277s, correct=True
+repeat 3: processes   2 workers, 434.528s, correct=True
+repeat 3: sequential  1 workers, 808.125s, correct=True
+repeat 3: threads     1 workers, 785.527s, correct=True
+repeat 3: threads    16 workers, 67.339s, correct=True
+repeat 3: threads     4 workers, 198.969s, correct=True
+repeat 3: processes   8 workers, 120.506s, correct=True
+repeat 4: threads    16 workers, 66.679s, correct=True
+repeat 4: threads     1 workers, 783.467s, correct=True
+repeat 4: processes  16 workers, 99.970s, correct=True
+repeat 4: threads    32 workers, 76.546s, correct=True
+repeat 4: processes   8 workers, 119.624s, correct=True
+repeat 4: threads     8 workers, 104.467s, correct=True
+repeat 4: threads     2 workers, 409.269s, correct=True
+repeat 4: sequential  1 workers, 814.718s, correct=True
+repeat 4: threads     4 workers, 203.184s, correct=True
+repeat 4: processes   4 workers, 218.410s, correct=True
+repeat 4: processes   2 workers, 427.529s, correct=True
+repeat 4: processes   1 workers, 850.021s, correct=True
+repeat 4: processes  32 workers, 82.456s, correct=True
+repeat 5: threads     2 workers, 397.802s, correct=True
+repeat 5: processes   8 workers, 118.629s, correct=True
+repeat 5: processes  16 workers, 98.535s, correct=True
+repeat 5: sequential  1 workers, 810.940s, correct=True
+repeat 5: processes  32 workers, 86.222s, correct=True
+repeat 5: threads     1 workers, 801.060s, correct=True
+repeat 5: threads    16 workers, 65.856s, correct=True
+repeat 5: threads     4 workers, 199.179s, correct=True
+repeat 5: threads     8 workers, 103.235s, correct=True
+repeat 5: threads    32 workers, 75.378s, correct=True
+repeat 5: processes   2 workers, 424.835s, correct=True
+repeat 5: processes   4 workers, 219.256s, correct=True
+repeat 5: processes   1 workers, 845.415s, correct=True
+Completed all measurements. Original rows preserved; new rows identify the resumption job.
+Saved strong_scaling.png, strong_scaling.pdf, and scaling_summary.csv in results/full-scaling-30691
