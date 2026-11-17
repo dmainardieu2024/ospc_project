@@ -1,5 +1,24 @@
 # Project decisions and experiment log
 
+## 17 November 2026 — shared-memory implementation and preliminary comparison
+
+This entry supersedes "multiprocessing.shared_memory" in the further-work list of the entry below. Full write-up: [SHARED_MEMORY.md](SHARED_MEMORY.md).
+
+**Implementation (Markel).** New execution method `compute_shared` in `calculations/parallel_shm.py`: process workers (spawn) write drawdowns, final values and crisis days directly into three `multiprocessing.shared_memory` blocks created by the parent, instead of returning pickled arrays. Same batches, seeds and financial model as the other methods; `simulate.py` and `parallel.py` unchanged. `benchmark.py` and `plot_scaling.py` accept `--methods shared`. After review, the timer was moved to include block close/unlink, and `calculations/checks/check_shared.py` now records the blocks it creates and fails if any remain (verified by removing `unlink()`).
+
+**Correctness.** `check_shared`: 4/4 PASS, byte-identical to sequential for both models at 1 and 2 workers, 3 blocks created and removed per run ([outputs](../results/shared_memory/check_outputs)). Commit `ca093b2` saved failed check outputs (course environment not loaded, NumPy not found); `b4509f2` replaces them.
+
+**Preliminary comparison, job 31751** (haskell, 64 logical CPUs, COMPLETED 0:0, 00:19:30; code at commit `6f55d60`, timer stopped before cleanup). Crisis model, 2,097,152 months, 50 assets, 20 days, batch size 4,096, seed 20261115; sequential, threads, processes and shared memory at 1–32 workers; five repetitions. All 95 timed results matched the sequential reference. Evidence: [results/shared_memory/job-31751/](../results/shared_memory/job-31751).
+
+| Workers | Threads median (min–max), s | Processes | Shared memory |
+|---:|---|---|---|
+| 16 | 2.02 (2.00–2.09) | 3.02 (2.43–5.83) | 5.48 (2.24–11.96) |
+| 32 | 2.35 (2.34–2.45) | 4.95 (2.70–10.78) | 4.10 (2.43–8.37) |
+
+Threads stayed within 5% across runs; processes and shared memory varied up to 4–5 times from 8 workers on, so their medians cannot be compared. Fastest runs suggest shared memory removes part of the process overhead (16 workers: 2.24 s against 2.43 s; threads 2.00 s), but this is an indication, not a result. The variability affected only methods that start new processes; process start-up is the leading hypothesis and is not yet measured. Sequential median 25.57 s: preliminary size, does not replace the full-size experiment.
+
+**Next:** direct measurement of pool start-up and of result transfer; repeat with the current timing boundary; full-size processes vs shared-memory run (estimated 5–6 h of the 64-CPU allowance, to be scheduled).
+
 ## 17 November 2026 — completed scaling and current status
 
 This entry supersedes earlier pending-work statements for full-size scaling, the independent normal reference and the initial reproduction task. Earlier dated entries are retained as history. See [README.md](../README.md) for the current overview and [PROGRESS_REVIEW.md](PROGRESS_REVIEW.md) for the meeting guide.
