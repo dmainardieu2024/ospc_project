@@ -1,0 +1,119 @@
+{
+  "experiment": "one_at_a_time_parameter_sensitivity",
+  "status": "completed",
+  "date_utc": "2026-11-18T19:54:44.010427+00:00",
+  "model": "crisis",
+  "scenarios": 262144,
+  "batch_size": 4096,
+  "seeds": [
+    101,
+    202,
+    303,
+    404,
+    505
+  ],
+  "cases": {
+    "baseline": {
+      "days": 20,
+      "assets": 50,
+      "initial_value": 100000.0,
+      "normal_log_mean": 0.0002,
+      "crisis_log_mean": -0.005,
+      "normal_log_vol": 0.012,
+      "crisis_log_vol": 0.035,
+      "normal_correlation": 0.25,
+      "crisis_correlation": 0.8,
+      "enter_crisis_probability": 0.01,
+      "leave_crisis_probability": 0.2
+    },
+    "crisis_log_vol_low": {
+      "days": 20,
+      "assets": 50,
+      "initial_value": 100000.0,
+      "normal_log_mean": 0.0002,
+      "crisis_log_mean": -0.005,
+      "normal_log_vol": 0.012,
+      "crisis_log_vol": 0.028000000000000004,
+      "normal_correlation": 0.25,
+      "crisis_correlation": 0.8,
+      "enter_crisis_probability": 0.01,
+      "leave_crisis_probability": 0.2
+    },
+    "crisis_log_vol_high": {
+      "days": 20,
+      "assets": 50,
+      "initial_value": 100000.0,
+      "normal_log_mean": 0.0002,
+      "crisis_log_mean": -0.005,
+      "normal_log_vol": 0.012,
+      "crisis_log_vol": 0.042,
+      "normal_correlation": 0.25,
+      "crisis_correlation": 0.8,
+      "enter_crisis_probability": 0.01,
+      "leave_crisis_probability": 0.2
+    },
+    "crisis_correlation_low": {
+      "days": 20,
+      "assets": 50,
+      "initial_value": 100000.0,
+      "normal_log_mean": 0.0002,
+      "crisis_log_mean": -0.005,
+      "normal_log_vol": 0.012,
+      "crisis_log_vol": 0.035,
+      "normal_correlation": 0.25,
+      "crisis_correlation": 0.6400000000000001,
+      "enter_crisis_probability": 0.01,
+      "leave_crisis_probability": 0.2
+    },
+    "crisis_correlation_high": {
+      "days": 20,
+      "assets": 50,
+      "initial_value": 100000.0,
+      "normal_log_mean": 0.0002,
+      "crisis_log_mean": -0.005,
+      "normal_log_vol": 0.012,
+      "crisis_log_vol": 0.035,
+      "normal_correlation": 0.25,
+      "crisis_correlation": 0.96,
+      "enter_crisis_probability": 0.01,
+      "leave_crisis_probability": 0.2
+    },
+    "enter_crisis_probability_low": {
+      "days": 20,
+      "assets": 50,
+      "initial_value": 100000.0,
+      "normal_log_mean": 0.0002,
+      "crisis_log_mean": -0.005,
+      "normal_log_vol": 0.012,
+      "crisis_log_vol": 0.035,
+      "normal_correlation": 0.25,
+      "crisis_correlation": 0.8,
+      "enter_crisis_probability": 0.008,
+      "leave_crisis_probability": 0.2
+    },
+    "enter_crisis_probability_high": {
+      "days": 20,
+      "assets": 50,
+      "initial_value": 100000.0,
+      "normal_log_mean": 0.0002,
+      "crisis_log_mean": -0.005,
+      "normal_log_vol": 0.012,
+      "crisis_log_vol": 0.035,
+      "normal_correlation": 0.25,
+      "crisis_correlation": 0.8,
+      "enter_crisis_probability": 0.012,
+      "leave_crisis_probability": 0.2
+    }
+  },
+  "source_sha256": {
+    "calculations/simulate.py": "fab122dc35b58cf99689b9676040f19c2cc244c85b9d22a50d588733e29f4c84",
+    "calculations/sampling_variation.py": "825b3471151219520d61911920840b197f1d5094557ff30bf920dc21d7ff5bd2",
+    "calculations/parameter_sensitivity.py": "c9a8a4276902f0ed65a00693064b83ad45212481718fb6f00de2b8d999418381",
+    "calculations/jobs/parameter_sensitivity.slurm": "d6b77f2608c01b6bae232ba86f354ac319b1c897717830743c58f4aa8d4491d1"
+  },
+  "python_version": "3.12.15",
+  "numpy_version": "2.5.4",
+  "node": "haskell",
+  "slurm_job_id": "32422",
+  "interpretation": "Paired changes conditional on synthetic assumptions; no confidence intervals or causal market claims."
+}

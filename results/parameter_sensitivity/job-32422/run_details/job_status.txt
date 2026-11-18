@@ -1,0 +1,4 @@
+JobID             State    Elapsed ExitCode 
+------------ ---------- ---------- -------- 
+32422         COMPLETED   00:01:58      0:0 
+32422.batch   COMPLETED   00:01:58      0:0 

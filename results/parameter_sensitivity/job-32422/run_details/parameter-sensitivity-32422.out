@@ -1,0 +1,39 @@
+PASS: hand-calculated drawdowns, flat market, disabled crises, repeatability,
+batch ordering, forced crises, positive values, drawdown bounds, binary outputs,
+tail summaries, output protection, and production-size selection.
+Still required: analytical normal-return benchmark and parallel equivalence tests.
+baseline seed=101: drawdown99=0.154089
+baseline seed=202: drawdown99=0.153863
+baseline seed=303: drawdown99=0.153836
+baseline seed=404: drawdown99=0.154786
+baseline seed=505: drawdown99=0.153376
+crisis_log_vol_low seed=101: drawdown99=0.133411
+crisis_log_vol_low seed=202: drawdown99=0.133410
+crisis_log_vol_low seed=303: drawdown99=0.133273
+crisis_log_vol_low seed=404: drawdown99=0.134026
+crisis_log_vol_low seed=505: drawdown99=0.132996
+crisis_log_vol_high seed=101: drawdown99=0.174003
+crisis_log_vol_high seed=202: drawdown99=0.174218
+crisis_log_vol_high seed=303: drawdown99=0.173709
+crisis_log_vol_high seed=404: drawdown99=0.175324
+crisis_log_vol_high seed=505: drawdown99=0.173587
+crisis_correlation_low seed=101: drawdown99=0.142789
+crisis_correlation_low seed=202: drawdown99=0.142529
+crisis_correlation_low seed=303: drawdown99=0.142636
+crisis_correlation_low seed=404: drawdown99=0.143407
+crisis_correlation_low seed=505: drawdown99=0.142324
+crisis_correlation_high seed=101: drawdown99=0.164077
+crisis_correlation_high seed=202: drawdown99=0.163803
+crisis_correlation_high seed=303: drawdown99=0.163853
+crisis_correlation_high seed=404: drawdown99=0.164984
+crisis_correlation_high seed=505: drawdown99=0.163419
+enter_crisis_probability_low seed=101: drawdown99=0.144425
+enter_crisis_probability_low seed=202: drawdown99=0.144936
+enter_crisis_probability_low seed=303: drawdown99=0.144028
+enter_crisis_probability_low seed=404: drawdown99=0.145524
+enter_crisis_probability_low seed=505: drawdown99=0.144572
+enter_crisis_probability_high seed=101: drawdown99=0.161316
+enter_crisis_probability_high seed=202: drawdown99=0.161934
+enter_crisis_probability_high seed=303: drawdown99=0.161564
+enter_crisis_probability_high seed=404: drawdown99=0.161940
+enter_crisis_probability_high seed=505: drawdown99=0.161593
